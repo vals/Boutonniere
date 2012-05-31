@@ -1,3 +1,5 @@
+import argparse
+
 from pybloomfilter import BloomFilter
 from Bio.SeqIO.QualityIO import FastqGeneralIterator
 
@@ -68,3 +70,36 @@ def count_matches(fastq_file, bf_files, ratio):
     bf.close()
 
     return checked, observed
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Screens for contamination " \
+        "by checking if reads from a sample of a given fastq file matches " \
+        "reads in a reference bloom filter.")
+
+    parser.add_argument("--build", dest='build', action='store_true', \
+                        default=False, \
+                        help="Create a bloom filter file from the given" \
+                        "reference fastq file.")
+
+    parser.add_argument('--seq', dest='sequences', action='store',
+                        help="File to be screened, " \
+                        "or a list of file to be indexed as " \
+                        "bloom filters in the case of --build.")
+
+    parser.add_argument("--errors", action='store', default=0.0005,
+                        help="The rate of false positives in the created " \
+                        "bloom filters, in the case of --build.")
+
+    parser.add_argument("--out", action='store', default=None,
+                        help="The name of the bloom filter file to be " \
+                        "created in the case of --build.")
+
+    parser.add_argument("--bloom", action='store', default=None, nargs='+',
+                        help="The bloom filters to screen against.")
+
+    args = parser.parse_args()
+
+
+if __name__ == "__main__":
+    main()
