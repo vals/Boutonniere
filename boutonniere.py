@@ -26,6 +26,17 @@ def total_reads(fastq_file):
     return total_num_reads
 
 
+def ratio(total_reads, subset_size):
+    """Gives a ratio to be used when iterating over the fastq file to check
+    for matches in the screen references. That is as in "Check every 1 in
+    (ratio) reads".
+    """
+    if subset_size > total_reads:
+        return 1
+
+    return int(total_reads / subset_size)
+
+
 def count_matches(fastq_file, bf_file, ratio):
     """Goes through a fastq file and checks a sample of reads if they
     occur in the specified bloom filter.
