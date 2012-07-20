@@ -26,7 +26,7 @@ def total_reads(fastq_file):
         for total_num_reads, _ in enumerate(fastq_it):
             pass
 
-    return total_num_reads
+    return total_num_reads+1
 
 
 def ratio(total_reads, subset_size):
@@ -67,7 +67,6 @@ def count_matches(fastq_file, bf_files, ratio):
                 observed[bf_file] += 1
 
     fastq_handle.close()
-    bf.close()
 
     return checked, observed
 
@@ -82,7 +81,7 @@ def main():
                         help="Create a bloom filter file from the given" \
                         "reference fastq file.")
 
-    parser.add_argument('--seq', dest='sequences', action='store',
+    parser.add_argument("--seq", dest='seq', action='store',
                         help="File to be screened, " \
                         "or a list of file to be indexed as " \
                         "bloom filters in the case of --build.")
@@ -91,15 +90,22 @@ def main():
                         help="The rate of false positives in the created " \
                         "bloom filters, in the case of --build.")
 
-    parser.add_argument("--out", action='store', default=None,
+    parser.add_argument("--out", dest='out', action='store', default=None,
                         help="The name of the bloom filter file to be " \
                         "created in the case of --build.")
 
-    parser.add_argument("--bloom", action='store', default=None, nargs='+',
-                        help="The bloom filters to screen against.")
+    parser.add_argument("--bloom", dest='bloom', action='store', default=None,
+                        nargs='+', help="The bloom filters to screen against.")
 
     args = parser.parse_args()
 
+
+
+    if args.build:
+        create_ref_bloom_filter(args.seq, 0.0005, args.out)
+
+    if args.bloom:
+    	print count_matches(args.seq, args.bloom, ratio(total_reads(args.seq), 10))
 
 if __name__ == "__main__":
     main()
