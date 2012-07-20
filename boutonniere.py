@@ -29,10 +29,10 @@ def total_reads(fastq_file):
     return total_num_reads+1
 
 
-def ratio(total_reads, subset_size):
+def sampling(total_reads, subset_size):
     """Gives a ratio to be used when iterating over the fastq file to check
     for matches in the screen references. That is as in "Check every 1 in
-    (ratio) reads".
+    (sampling) reads".
     """
     if subset_size >= total_reads:
         return 1
@@ -40,7 +40,7 @@ def ratio(total_reads, subset_size):
     return int(total_reads / subset_size)
 
 
-def count_matches(fastq_file, bf_files, ratio):
+def count_matches(fastq_file, bf_files, sampling):
     """Goes through a fastq file and checks a sample of reads if they
     occur in the specified bloom filter.
     """
@@ -56,9 +56,9 @@ def count_matches(fastq_file, bf_files, ratio):
     fastq_handle = open(fastq_file)
     fastq_it = FastqGeneralIterator(fastq_handle)
     checked = 0
-    ratio = int(ratio)
+    sampling = int(sampling)
     for i, (_, read, _) in enumerate(fastq_it):
-        if i % ratio:
+        if i+1 % sampling:
             continue
 
         checked += 1
@@ -105,7 +105,7 @@ def main():
         create_ref_bloom_filter(args.seq, 0.0005, args.out)
 
     if args.bloom:
-    	print count_matches(args.seq, args.bloom, ratio(total_reads(args.seq), 10))
+    	print count_matches(args.seq, args.bloom, sampling(total_reads(args.seq), 10))
 
 if __name__ == "__main__":
     main()
