@@ -12,15 +12,15 @@ class BloomTest(unittest.TestCase):
         no performance or stress tests.
     """
 
-    bloom_fh, tmpfile_path = tempfile.mkstemp(suffix=".bloom", dir=os.path.dirname(self.oneread))
-    print "Created bloom filter at %s ..." % self.tmpfile_path
-
-    def setUp(self):
+    def setUpClass(self):
         self.oneread = os.path.join(os.path.dirname(__file__),
                                     "data", "1read.fastq")
         self.nomatch = os.path.join(os.path.dirname(__file__),
                                     "data", "nomatch.fastq")
 
+
+        self.bloom_fh, self.tmpfile_path = tempfile.mkstemp(suffix=".bloom", dir=os.path.dirname(self.oneread))
+        print "Created bloom filter at %s ..." % self.tmpfile_path
 
     def test_match_oneread(self):
         bt.create_ref_bloom_filter(self.oneread, 0.0005, self.tmpfile_path)
