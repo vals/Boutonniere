@@ -14,31 +14,45 @@ class BloomTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        self.oneread = os.path.join(os.path.dirname(__file__),
-                                    "data", "1read.fastq")
-        self.nomatch = os.path.join(os.path.dirname(__file__),
-                                    "data", "nomatch.fastq")
 
+        self.test_files = {}
 
-        self.bloom_fh, self.tmpfile_path = tempfile.mkstemp(suffix=".bloom", dir=os.path.dirname(self.oneread))
+        self.test_files["oneread"] = {
+                "ref_file": self.test_files[os.path.join(os.path.dirname(__file__), "data", "1read.fastq")],
+                "bloomfilter": None
+        }
+        self.test_files["nomatch"] = {
+                "ref_file": self.test_files[os.path.join(os.path.dirname(__file__), "data", "nomatch.fastq")],
+                "bloomfilter": None
+        }
 
-    def test_match_oneread(self):
-        bt.create_ref_bloom_filter(self.oneread, 0.0005, self.tmpfile_path)
-        assert os.path.exists(self.tmpfile_path)
-        assert os.path.getsize(self.tmpfile_path) > 0
+        self.get_r = lambda name: self.test_files[name]["ref_file"]
+        self.get_bf = lambda name: self.test_files[name]["bloomfilter"]
+
+#        self.bloom_fh, self.tmpfile_path = tempfile.mkstemp(suffix=".bloom",
+#                                       dir=os.path.dirname(self.test_files[]))
+
+        for f in self.test_files.values():
+            _, f["bloomfilter"] = tempfile.mkstemp(suffix=".bloom", dir=os.path.dirname(test_file))
+            bt.create_ref_bloom_filter(f["ref_file"], 0.0005, f["bloomfilter"], format=test_file.split(".")[-1])
+
+    def test_create_bloomfilter(self):
+        assert os.path.exists(self.get_bf("oneread"))
+        assert os.path.getsize(self.get_bf("oneread")) > 0
 
     def test_query_nomatch(self):
-        checked, matched  = bt.count_matches(self.nomatch, self.tmpfile_path,
-                                   bt.sampling(bt.total_reads(self.nomatch), 1))
+        checked, matched  = bt.count_matches(self.get_r("nomatch"), self.get_bf("nomatch"),
+                                   bt.sampling(bt.total_reads(self.get_bf("nomatch")), 1))
         assert checked == 1
         assert isinstance(matched, dict), "Not a dict !: {}".format(type(matched))
-        assert matched[self.tmpfile_path] == 0, "Unexpected matches found {}".format(matched[self.tmpfile_path])
+        assert matched[self.get_bf("nomatch")] == 0, "Unexpected matches found {}".format(matched[self.get_bf("nomatch")])
 
     def test_query_oneread(self):
         _, matched = bt.count_matches(self.oneread, self.tmpfile_path,
-                                   bt.sampling(bt.total_reads(self.oneread), 1))
+                                   bt.sampling(bt.total_reads(self.test_files["ref_file"]+oneread), 1))
         assert matched[self.tmpfile_path] == 1
 
     @classmethod
     def tearDownClass(self):
-        os.remove(self.tmpfile_path)
+        for tmp_file in self.test_files.values():
+            os.remove(tmp_file)

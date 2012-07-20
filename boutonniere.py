@@ -2,16 +2,25 @@ import argparse
 
 from pybloomfilter import BloomFilter
 from Bio.SeqIO.QualityIO import FastqGeneralIterator
+from Bio.SeqIO.FastaIO import FastaIterator
 
 
-def create_ref_bloom_filter(reference_fastq_file, error_rate, bf_file):
-    """From a given FASTQ reference sequence creates a bloom filter file
+def create_ref_bloom_filter(reference_file, error_rate, bf_file, format="fasta"):
+    """From a given FASTA reference sequence creates a bloom filter file
     from each read.
     """
-    capacity = total_reads(reference_fastq_file)
-    with open(reference_fastq_file) as fastq_handle:
-        fastq_it = FastqGeneralIterator(fastq_handle)
-        read_it = (read for _, read, _ in fastq_it)
+
+    if format == "fasta":
+    	file_it = FastaIterator
+        record = lambda it: (seq.seq for seq in it)
+    elif format == "fastq":
+        file_it = FastqGeneralIterator
+        record = lambda it: (seq for _, seq, _ in it)
+
+    capacity = total_reads(reference_file)
+    with open(reference_file) as handle:
+        it = file_it(handle)
+        read_it = record(it)
         bf = BloomFilter(capacity, error_rate, bf_file)
         bf.update(read_it)
         bf.close()
