@@ -30,6 +30,8 @@ def total_reads(fastq_file):
     """Get the total number of reads in a fastq file.
     (Just reads all the fastq tuples of the file and counts.)
     """
+
+    total_num_reads = 0
     with open(fastq_file) as fastq_handle:
         fastq_it = FastqGeneralIterator(fastq_handle)
         for total_num_reads, _ in enumerate(fastq_it):
