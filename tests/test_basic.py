@@ -5,12 +5,13 @@ import unittest
 import tempfile
 
 import boutonniere as bt
-#from pybloomfilter import BloomFilter
 
 class BloomTest(unittest.TestCase):
     """ Bloom filter tests, basic creation and querying,
         no performance or stress tests.
     """
+
+
 
     @classmethod
     def setUpClass(self):
@@ -18,23 +19,24 @@ class BloomTest(unittest.TestCase):
         self.test_files = {}
 
         self.test_files["oneread"] = {
-                "ref_file": self.test_files[os.path.join(os.path.dirname(__file__), "data", "1read.fastq")],
+                "ref_file": os.path.join(os.path.dirname(__file__), "data", "1read.fastq"),
                 "bloomfilter": None
         }
         self.test_files["nomatch"] = {
-                "ref_file": self.test_files[os.path.join(os.path.dirname(__file__), "data", "nomatch.fastq")],
+                "ref_file": os.path.join(os.path.dirname(__file__), "data", "nomatch.fastq"),
                 "bloomfilter": None
         }
 
-        self.get_r = lambda name: self.test_files[name]["ref_file"]
-        self.get_bf = lambda name: self.test_files[name]["bloomfilter"]
+        for test_name, test_file in self.test_files.items():
+            _, test_file["bloomfilter"] = tempfile.mkstemp(suffix=".bloom", dir=os.path.dirname(self.test_files[test_name]["ref_file"]))
+            bt.create_ref_bloom_filter(test_file["ref_file"], 0.0005, test_file["bloomfilter"], format=self.test_files[test_name]["ref_file"].split(".")[-1])
 
-#        self.bloom_fh, self.tmpfile_path = tempfile.mkstemp(suffix=".bloom",
-#                                       dir=os.path.dirname(self.test_files[]))
 
-        for f in self.test_files.values():
-            _, f["bloomfilter"] = tempfile.mkstemp(suffix=".bloom", dir=os.path.dirname(test_file))
-            bt.create_ref_bloom_filter(f["ref_file"], 0.0005, f["bloomfilter"], format=test_file.split(".")[-1])
+    def get_r(self, name):
+        return self.test_files[name]["ref_file"]
+
+    def get_bf(self, name):
+        return self.test_files[name]["bloomfilter"]
 
     def test_create_bloomfilter(self):
         assert os.path.exists(self.get_bf("oneread"))
@@ -54,5 +56,5 @@ class BloomTest(unittest.TestCase):
 
     @classmethod
     def tearDownClass(self):
-        for tmp_file in self.test_files.values():
-            os.remove(tmp_file)
+        for test_name in self.test_files.keys():
+            os.remove(self.test_files[test_name]["bloomfilter"])
