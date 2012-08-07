@@ -87,8 +87,8 @@ def count_matches(fastq_file, bf_files, sampling):
    # import ipdb
    # ipdb.set_trace()
     for i, (_, read, _) in enumerate(fastq_it):
-     #   if i+1 % sampling + 1:
-     #       continue
+        if not i + 1 % sampling:
+            continue
 
         print read
 
