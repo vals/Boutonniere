@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import argparse
 
 from pybloomfilter import BloomFilter
@@ -21,8 +22,23 @@ def create_ref_bloom_filter(reference_file, error_rate, bf_file, format="fasta")
     with open(reference_file) as handle:
         it = file_it(handle)
         read_it = record(it)
+        read_len = 109
+        read_in = []
+        read = []
+        buffer = []
+        
         bf = BloomFilter(capacity, error_rate, bf_file)
-        bf.update(read_it)
+        sequence = read_it.next()
+
+        step = read_len
+        
+        i = 0
+        while i < len(sequence):
+            read = sequence[i:i + read_len - 1]
+            i += step
+            print(read)
+            bf.update(read)
+                
         bf.close()
 
 
@@ -68,9 +84,13 @@ def count_matches(fastq_file, bf_files, sampling):
     fastq_it = FastqGeneralIterator(fastq_handle)
     checked = 0
     sampling = int(sampling)
+   # import ipdb
+   # ipdb.set_trace()
     for i, (_, read, _) in enumerate(fastq_it):
-        if i+1 % sampling:
-            continue
+     #   if i+1 % sampling + 1:
+     #       continue
+
+        print read
 
         checked += 1
         for bf_file in bf_files:
@@ -113,6 +133,7 @@ def main():
 
 
     if args.build:
+        print "Building..."
         create_ref_bloom_filter(args.seq, 0.0005, args.out)
 
     if args.bloom:
@@ -120,3 +141,8 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# Sliding window with skip = 0, one bp at a atime
+# Sliding the length of a read
+# Random strides on the sliding window steps?
+# 
